@@ -37,7 +37,6 @@ class dmn:
             signal.SIGTERM: self._program_cleanup,
             signal.SIGHUP: 'terminate',
             signal.SIGUSR1: self._reload_program_config,
-            signal.SIGUSR2: self._get_daemon_status,
         }
         context.stdout = self.file_stdout
         context.stderr = self.file_stderr
