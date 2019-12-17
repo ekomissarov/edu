@@ -13,11 +13,19 @@ class dmn:
         self.working_directory = '/home/eugene/localsource/edu/daemon-example/'
         self.umask = 0o002
         self.pidfile = '/home/eugene/localsource/edu/daemon-example/pid_dmn.pid'
-        self.file_stdout = open("/home/eugene/localsource/edu/daemon-example/stdout.txt", "w+")
-        self.file_stderr = open("/home/eugene/localsource/edu/daemon-example/stderr.txt", "w+")
+        self.filename_stdout = "/home/eugene/localsource/edu/daemon-example/stdout.txt"
+        self.filename_stderr = "/home/eugene/localsource/edu/daemon-example/stderr.txt"
+        self.file_stdout = None
+        self.file_stderr = None
 
     def run(self):
-        self.initial_program_setup()
+        if os.path.exists(self.pidfile):
+            pid = self.get_pid()
+            if self.check_pid(pid):
+                print("Daemon already running...")
+                exit(0)
+
+        self._initial_program_setup()
 
         context = daemon.DaemonContext(
             working_directory=self.working_directory,
@@ -26,9 +34,10 @@ class dmn:
         )
 
         context.signal_map = {
-            signal.SIGTERM: self.program_cleanup,
+            signal.SIGTERM: self._program_cleanup,
             signal.SIGHUP: 'terminate',
-            signal.SIGUSR1: self.reload_program_config,
+            signal.SIGUSR1: self._reload_program_config,
+            signal.SIGUSR2: self._get_daemon_status,
         }
         context.stdout = self.file_stdout
         context.stderr = self.file_stderr
@@ -49,7 +58,39 @@ class dmn:
                 sleep(1)
         except OSError as msg:
             if str(msg).find("No such process") != -1:
-                self.del_pid()
+                self._del_pid()
+            else:
+                sys.stderr.write("{}\n".format(msg))
+                exit(1)
+
+    def status(self):
+        pid = self.get_pid()
+        if not pid:
+            message = "Cant read pidfile {}\n"
+            sys.stderr.write(message.format(self.pidfile))
+            exit(1)
+
+        try:
+            os.kill(pid, signal.SIGUSR2)
+        except OSError as msg:
+            if str(msg).find("No such process") != -1:
+                self._del_pid()
+            else:
+                sys.stderr.write("{}\n".format(msg))
+                exit(1)
+
+    def reload(self):
+        pid = self.get_pid()
+        if not pid:
+            message = "Cant read pidfile {}\n"
+            sys.stderr.write(message.format(self.pidfile))
+            exit(1)
+
+        try:
+            os.kill(pid, signal.SIGUSR1)
+        except OSError as msg:
+            if str(msg).find("No such process") != -1:
+                self._del_pid()
             else:
                 sys.stderr.write("{}\n".format(msg))
                 exit(1)
@@ -64,35 +105,57 @@ class dmn:
             pid = None
         return pid
 
-    def del_pid(self):
+    def _del_pid(self):
         try:
             if os.path.exists(self.pidfile):
                 os.remove(self.pidfile)
         except Exception as msg:
             pass
 
-    def initial_program_setup(self):
+    @staticmethod
+    def check_pid(pid):
+        """ Check For the existence of a unix pid. """
+        try:
+            os.kill(pid, 0)
+        except OSError:
+            return False
+        else:
+            return True
+
+    def _initial_program_setup(self):
         print("initial_program_setup running...")
-        self.file_stdout = open(self.file_stdout, "w+")
-        self.file_stderr = open(self.file_stderr, "w+")
+        self.file_stdout = open(self.filename_stdout, "w+")
+        self.file_stderr = open(self.filename_stderr, "w+")
 
     def do_main_program(self):
         while True:
             print("QKRQ!")
             sleep(10)
 
-    def program_cleanup(self, signum, frame):
+    def _program_cleanup(self, signum, frame):
         # https://docs.python.org/3/library/signal.html#example
         print("program_cleanup running...")
+        self.file_stdout.close()
+        self.file_stderr.close()
+        exit(1)
 
-    def reload_program_config(self, signum, frame):
+    def _reload_program_config(self, signum, frame):
         # https://docs.python.org/3/library/signal.html#example
         print("reload_program_config running...")
 
+    def _get_daemon_status(self, signum, frame):
+        # https://docs.python.org/3/library/signal.html#example
+        pid = self.get_pid()
+        print("PID {} in file {}".format(pid, self.pidfile))
+        print("Daemon PID - {}".format(os.getpid()))
+        print("Working directory - {}".format(self.working_directory))
+        print("STDOUT - {}".format(self.filename_stdout))
+        print("STDERR - {}".format(self.filename_stderr))
+
 
 if __name__ == '__main__':
-    print("run: python dmn.py (start|stop|restart|status|reload)")
     if len(sys.argv) != 2:
+        print("run: python dmn.py (start|stop|restart|status|reload)")
         exit(1)
 
     if sys.argv[1] == "start":
@@ -103,10 +166,16 @@ if __name__ == '__main__':
         print("Stopping daemon...")
         d = dmn()
         d.stop()
-    elif sys.argv[1] == "Restart":
+    elif sys.argv[1] == "restart":
         print("Restarting daemon...")
         d = dmn()
         d.stop()
         d.run()
-
-
+    elif sys.argv[1] == "status":
+        print("Daemon status...")
+        d = dmn()
+        d.status()
+    elif sys.argv[1] == "reload":
+        print("Reloading settings...")
+        d = dmn()
+        d.reload()
