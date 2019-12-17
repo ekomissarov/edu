@@ -63,22 +63,6 @@ class dmn:
                 sys.stderr.write("{}\n".format(msg))
                 exit(1)
 
-    def status(self):
-        pid = self.get_pid()
-        if not pid:
-            message = "Cant read pidfile {}\n"
-            sys.stderr.write(message.format(self.pidfile))
-            exit(1)
-
-        try:
-            os.kill(pid, signal.SIGUSR2)
-        except OSError as msg:
-            if str(msg).find("No such process") != -1:
-                self._del_pid()
-            else:
-                sys.stderr.write("{}\n".format(msg))
-                exit(1)
-
     def reload(self):
         pid = self.get_pid()
         if not pid:
@@ -143,15 +127,6 @@ class dmn:
         # https://docs.python.org/3/library/signal.html#example
         print("reload_program_config running...")
 
-    def _get_daemon_status(self, signum, frame):
-        # https://docs.python.org/3/library/signal.html#example
-        pid = self.get_pid()
-        print("PID {} in file {}".format(pid, self.pidfile))
-        print("Daemon PID - {}".format(os.getpid()))
-        print("Working directory - {}".format(self.working_directory))
-        print("STDOUT - {}".format(self.filename_stdout))
-        print("STDERR - {}".format(self.filename_stderr))
-
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
@@ -174,7 +149,11 @@ if __name__ == '__main__':
     elif sys.argv[1] == "status":
         print("Daemon status...")
         d = dmn()
-        d.status()
+        pid = d.get_pid()
+        if pid is None:
+            print("PID not found. Daemon Stopped?")
+        else:
+            print("Daemon PID = {}".format(pid))
     elif sys.argv[1] == "reload":
         print("Reloading settings...")
         d = dmn()
