@@ -6,7 +6,8 @@ from time import sleep
 import os
 import grp
 import lockfile
-
+# https://www.python.org/dev/peps/pep-3143/
+# https://fooobar.com/questions/200828/how-do-i-set-up-a-daemon-with-python-daemon
 
 class dmn:
     def __init__(self):
