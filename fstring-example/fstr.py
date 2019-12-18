@@ -49,3 +49,27 @@ for align, text in zip('<^>', ['left', 'center', 'right']):
 print(f'{"QKRQ":z>32}')
 
 
+name = "Eric"
+profession = "comedian"
+affiliation = "Monty Python"
+message = (
+    f"Hi {name.upper()}. "
+    f"You are a {profession}. "
+    f"You were in {affiliation}."
+)
+print(message)
+
+
+import timeit
+print(timeit.timeit("""name = "Eric"
+age = 74
+'%s is %s.' % (name, age)""", number = 10000))
+
+print(timeit.timeit("""name = "Eric"
+age = 74
+'{} is {}.'.format(name, age)""", number = 10000))
+
+print(timeit.timeit("""name = "Eric"
+age = 74
+f'{name} is {age}.'""", number = 10000))
+
