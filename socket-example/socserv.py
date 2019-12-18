@@ -1,10 +1,13 @@
 import socket
+import json
 # https://docs.python.org/3/howto/sockets.html
 # https://docs.python.org/3/library/socket.html#module-socket
 
 
 def process_request(s):
-    return "<<{}>>".format(s)
+    s = json.loads(s)
+    s['value'] = 2.718281828
+    return json.dumps(s)
 
 
 if __name__ == '__main__':
