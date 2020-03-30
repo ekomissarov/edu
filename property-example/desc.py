@@ -5,12 +5,12 @@ class Dsc:
         print(f"Get from {cls}:{obj}")
         return self.value
 
-    def __set__(self, cls, val):
-        print(f"Set {cls} to {val}")
+    def __set__(self, obj, val):
+        print(f"Set {obj} to {val}")
         self.value = val
 
-    def __delete__(self, cls):
-        print("Delete {cls}")
+    def __delete__(self, obj):
+        print(f"Delete {obj}")
         self.value = None
 
 
