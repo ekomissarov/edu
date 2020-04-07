@@ -33,7 +33,7 @@ def handle_request(conn, addr):
                 break
             result = process_request(request_link.decode('utf-8').strip())
             resp = str(result).encode('utf-8') + b'\n'
-            client_connection.send(resp)
+            client_socket.send(resp)
 
 
 if __name__ == '__main__':
@@ -43,12 +43,12 @@ if __name__ == '__main__':
     listen_socket.listen(1)
     signal.signal(signal.SIGCHLD, handle_signal)
     while True:
-        client_connection, client_address = listen_socket.accept()
+        client_socket, client_address = listen_socket.accept()
         pid = os.fork()
         if pid == 0:
             listen_socket.close()  # close child copy listen
-            handle_request(client_connection, client_address)
-            client_connection.close()
+            handle_request(client_socket, client_address)
+            client_socket.close()
             exit(0)
         else:
-            client_connection.close()
+            client_socket.close()

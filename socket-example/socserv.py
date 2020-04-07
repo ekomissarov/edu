@@ -31,7 +31,7 @@ if __name__ == '__main__':
         # accept метод серверного сокета, он принимает входящее подключение. Он читает данные из входящего буфера
         # и если на вход пришло что нибудь возвращает кортеж (сокет с другой стороны, адрес)
         # входящее подключение мы приняли
-        with client_socket:
+        with client_socket:  # client_socket.close() по завершении
             print('Connected by', client_address)
             while True:
                 request_link = client_socket.recv(1024)  # дожидаемся входящего сообщения
