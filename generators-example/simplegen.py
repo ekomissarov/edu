@@ -33,6 +33,7 @@ def gen_filename():
         yield pattern.format(t)
         print("\t\tAfter yield")
 
+
 g = gen_filename()
 print(next(g))
 print(next(g))

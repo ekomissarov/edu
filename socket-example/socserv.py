@@ -19,15 +19,15 @@ def process_incoming_message(s):
 
 
 if __name__ == '__main__':
-    listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # socket.AF_INET - address family IPv4; socket.SOCK_STREAM - TCP
-    listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     # на случай прерывания работы скрипта, порт будет занят в течении таймаута от ОС (~3 мин),
     # чтобы данные в пути дошли до адресата, будем использовать переиспользование адреса
-    listen_socket.bind(('localhost', 33000))
-    listen_socket.listen(1)  # прослушивание порта на предмет входящего подключения
+    server_socket.bind(('localhost', 33000))
+    server_socket.listen(1)  # прослушивание порта на предмет входящего подключения
     while True:
-        client_socket, client_address = listen_socket.accept()  # блокирующая операция
+        client_socket, client_address = server_socket.accept()  # блокирующая операция
         # accept метод серверного сокета, он принимает входящее подключение. Он читает данные из входящего буфера
         # и если на вход пришло что нибудь возвращает кортеж (сокет с другой стороны, адрес)
         # входящее подключение мы приняли
