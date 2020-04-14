@@ -46,14 +46,14 @@ def client(client_socket):
 
 def event_loop():
     while any([tasks, to_read, to_write]):
-        while not tasks:
-            ready_to_read, ready_to_write, _ = select(to_read, to_write, [])
+        while not tasks:  # здесь заполняем задания по готовности на чтение/запись
+            ready_to_read, ready_to_write, _ = select(to_read, to_write, []) # блокирующая операция теперь здесь
             for sock in ready_to_read:
                 tasks.append(to_read.pop(sock))
             for sock in ready_to_write:
                 tasks.append(to_write.pop(sock))
 
-        try:
+        try:  # здесь разбираем задания по одному слева
             task = tasks.popleft()
             reason, sock = next(task)
             if reason == "read":

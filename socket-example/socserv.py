@@ -34,7 +34,7 @@ if __name__ == '__main__':
         with client_socket:  # client_socket.close() по завершении
             print('Connected by', client_address)
             while True:
-                request_link = client_socket.recv(1024)  # дожидаемся входящего сообщения
+                request_link = client_socket.recv(1024)  # блокирующая операция, дожидаемся входящего сообщения
                 if not request_link:
                     break  # условие прерывание цикла
                 result = process_incoming_message(request_link.decode('utf-8').strip())
