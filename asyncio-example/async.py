@@ -47,7 +47,6 @@ async def main():
         await asyncio.gather(*tasks)
 
 
-
 if __name__ == '__main__':
     # main_sync()
     t0 = time()
