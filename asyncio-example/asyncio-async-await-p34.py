@@ -42,7 +42,7 @@ def print_time():
 def main():
     task1 = asyncio.ensure_future(print_nums())
     task2 = asyncio.ensure_future(print_time())
-    yield from  asyncio.gather(task1, task2)
+    yield from asyncio.gather(task1, task2)
 
 
 if __name__ == '__main__':

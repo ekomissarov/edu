@@ -18,6 +18,13 @@
 #       экземпляры класса Task описывают те дейстивя, которые должны выполнятся асинхронно
 
 # python 3.5
+# + async with, + async for
+# пришли на замену
+# with (yield from ...) for i in (yield from ...)
+# __aiter__, __anext__, __aenter__, __aexit__, __await__
+# iscoroutine(), isawaitable() - inspect library
+# abstract base classes: abc.Awaitable, abc.Couroutine, abc.AsyncIterable, abc.AsyncIterator
+# https://www.youtube.com/watch?v=8-PxeTgTx6s
 
 import asyncio
 
