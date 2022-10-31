@@ -1,0 +1,49 @@
+План:
+1. bash - что это?
+2. базовые команды для навигации
+3. универсальный клей, перенаправление потоков
+4. работа с большими текстовыми файлами
+--------------------------------------------------------
+
+
+whoami - кто я есть
+pwd - текущая директория (рабочий каталог)
+
+Ключи и команда man
+ls - список файлов
+ls -al - развернутый список файлов
+ls -alh - с человекочитаемыми размерами
+
+cd [имя папки]
+mkdir [имя папки]
+rm [имя файла]
+
+tab - автодополнения
+
+file - что это за файл
+wc - подсчет строк
+cat и less
+> >> | перенаправление ввода вывода
+
+То что нужно:
+grep - простой поиск строки (сокращенные регулярные выражения)
+egrep - усовершенсовованный grep с регулярными выражениями
+egrep -rn "regex" ./path/
+
+
+sed - потоковый редактор
+cat file | sed -r '3,5d' - удаляет строки 3-5
+cat file | sed -r -n '3,5p' - тихий режим, печатает строки 3-5
+cat file | sed -r '/Adwords/d' - удяляет строки содержащие регулярное выражение
+cat file | sed -r -n '/Adwords/p' - печатает строки сожержащие регулярное выражение
+cat file | sed 's/http/https/' > fileout
+
+cat file | sed 's/http/https/' или sed 's/http/https/' < filein.txt
+
+
+-----------------------------------------------
+Дополнительные материалы по теме:
+https://habr.com/ru/company/ruvds/blog/325522/
+курс лекций https://www.youtube.com/watch?v=k3agFfyYQvI&list=PL6kSdcHYB3x4_3Ixyd1yT4D3qCJgdqpII
+а там https://www.youtube.com/watch?v=krCPHezjvNg&list=PL6kSdcHYB3x4_3Ixyd1yT4D3qCJgdqpII&index=6 и 
+https://www.youtube.com/watch?v=FF4QlndOO8s&list=PL6kSdcHYB3x4_3Ixyd1yT4D3qCJgdqpII&index=7
