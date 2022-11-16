@@ -1,0 +1,193 @@
+Типы: 
+NULL, INTEGER, REAL, TEXT, BLOB
+
+
+
+CREATE TABLE users (name TEXT, sex INTEGER, old INTEGER, score INTEGER)
+CREATE TABLE IF NOT EXIST users (name TEXT, sex INTEGER, old INTEGER, score INTEGER)
+
+SELECT * FROM users
+SELECT rowid, * FROM users
+
+DROP TABLE users
+DROP TABLE IF EXISTS users
+CREATE TABLE IF NOT EXIST users (name TEXT NOT NULL, sex INTEGER DEFAULT 1, old INTEGER, score INTEGER)
+CREATE TABLE IF NOT EXIST users (name TEXT NOT NULL, sex INTEGER NOT NULL DEFAULT 1, old INTEGER, score INTEGER)
+CREATE TABLE IF NOT EXIST users (user_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, sex INTEGER NOT NULL DEFAULT 1, old INTEGER, score INTEGER)
+
+
+INSERT INTO users VALUES ('Михаил', 1, 19, 1000)
+INSERT INTO users (name, old, score) VALUES ('Федор', 32, 200)
+
+SELECT name, old, score FROM users
+SELECT * FROM users
+SELECT * FROM users WHERE score < 1000
+
+= == > < >= <= != BETWEEN
+
+
+SELECT * FROM users WHERE score BETWEEN 500 AND 1000
+SELECT * FROM users WHERE score == 200
+
+AND OR IN NOT IN
+
+SELECT * FROM users WHERE old > 20 AND score < 1000
+SELECT * FROM users WHERE old IN(19, 32) AND score <= 1000 OR sex == 1
+SELECT * FROM users WHERE old IN(19, 32) AND (score <= 1000 OR sex = 1)
+
+SELECT * FROM users WHERE old IN(19, 32) AND score <= 1000 OR sex == 1 ORDER BY old
+SELECT * FROM users WHERE old IN(19, 32) AND score <= 1000 OR sex == 1 ORDER BY old DESC
+SELECT * FROM users WHERE old IN(19, 32) AND score <= 1000 OR sex == 1 ORDER BY old ASC
+
+SELECT * FROM users WHERE score > 100 ORDER BY score DESC LIMIT 10
+SELECT * FROM users WHERE score > 100 ORDER BY score DESC LIMIT 10 OFFSET 100
+SELECT * FROM users WHERE score > 100 ORDER BY score DESC LIMIT 100, 10
+
+
+UPDATE users SET score = 0
+UPDATE users SET score = 1000 WHERE rowid = 1
+UPDATE users SET score = score + 500 WHERE sex = 2
+UPDATE users SET score = 300 WHERE name LIKE 'Федор'
+UPDATE users SET score = 300 WHERE name LIKE 'Ф_д%'
+UPDATE users SET score = 800, old = 45 WHERE old > 40
+
+DELETE FROM users WHERE rowid IN(2, 5)
+
+SELECT user_id FROM games WHERE user_id = 1
+SELECT count(user_id) FROM games WHERE user_id = 1
+SELECT count(score) FROM games WHERE user_id = 1
+SELECT count(user_id) as count FROM games WHERE user_id = 1
+
+агрегирующая функция выполняется в последнюю очередь, сначала отрабатывает SELECT
+count(), sum(), avr(), min(), max()
+
+SELECT count(DISTINCT user_id) as count FROM games
+SELECT DISTINCT user_id as count FROM games
+SELECT sum(score) as scores FROM games WHERE user_id = 1
+SELECT min(score) as scores FROM games WHERE user_id = 1
+
+
+SELECT user_id, sum(score) as score_sum
+FROM games
+GROUP BY user_id
+ORDER BY score_sum DESC
+
+SELECT user_id, sum(score) as score_sum
+FROM games
+WHERE score > 300	# выполняется до группировки
+GROUP BY user_id
+ORDER BY score_sum DESC
+LIMIT 10
+
+
+
+games (user_id, score, time) users (rowid, name, sex, old, score)
+
+SELECT name, sex, games.score FROM games
+JOIN users ON games.user_id = users.rowid		# Inner join
+
+SELECT name, sex, games.score FROM users, games	# вернет декартово произведение из строчек
+
+SELECT name, sex, games.score FROM games
+LEFT JOIN users ON games.user_id = users.rowid		# строки games берутся даже если не найдено соответствие в users
+
+
+SELECT name, sex, sum(games.score) as score_sum
+FROM games JOIN users ON games.user_id = users.rowid
+GROUP BY user_id
+ORDER BY score_sum DESC
+
+
+
+SELECT <поля> FROM <таблица 1>
+JOIN <таблица 2> JOIN <таблица 3> ... JOIN <таблица N>
+ON <условие связывания>
+
+
+
+
+SELECT score, `from` FROM tab1			# `from` имя столбца
+UNION SELECT val, type FROM tab2
+
+SELECT score FROM tab1
+UNION SELECT val FROM tab2			# объединение оставляет только уникальные записи
+
+
+SELECT score, 'table 1' as tbl FROM tab1
+UNION SELECT val, 'table 2' FROM tab2
+ORDER BY score DESC
+
+
+SELECT score, 'table 1' as tbl FROM tab1 WHERE score IN(300, 400)
+UNION SELECT val, 'table 2' FROM tab2
+ORDER BY score DESC
+LIMIT 3
+
+
+
+# вложенные запросы по отдельности
+SELECT mark FROM marks
+WHERE id = 2 AND subject LIKE 'Си'
+
+SELECT name, subject, mark FROM marks
+JOIN students ON students.rowid = marks.id
+WHERE mark > 3 AND subject LIKE 'Си'
+
+# совмещаем
+
+SELECT name, subject, mark FROM marks
+JOIN students ON students.rowid = marks.id
+WHERE mark > (SELECT mark FROM marks
+WHERE id = 2 AND subject LIKE 'Си')
+AND subject LIKE 'Си'
+
+SELECT name, subject, mark FROM marks
+JOIN students ON students.rowid = marks.id
+WHERE mark > (SELECT avg(mark) FROM marks WHERE id = 2)
+AND subject LIKE 'Си'
+
+INSERT INTO female
+SELECT * FROM students WHERE sex = 2
+
+
+# если выполняем второй раз нужно избавиться от неуникальных идентификаторов
+INSERT INTO female
+SELECT NULL, name, sex, old FROM students WHERE sex = 2
+
+
+
+UPDATE marks SET mark = 0
+WHERE mark <= (SELECT min(mark) FROM marks WHERE id = 1)
+
+DELETE FROM students
+WHERE old < (SELECT old FROM students WHERE id = 2)
+
+
+
+-- из курса по MySQL
+DESCRIBE students;
+ALTER TABLE student ADD gpa DECIMAL(3, 2);
+ALTER TABLE student DROP COLUMN gpa;
+
+
+SQL (Structured Query Language) Relational Database Management Systems (RDBMS)
+You can use SQL to get the RDBMS to do things for you
+- create, retrieve, update and delete data
+- create and manage databases
+- design and create database tables
+- perform administration tasks (security, user management, import/export, etc)
+
+some specific with:
+- foreign key is essential way to find relationships between the two tables
+- composit key
+
+
+SQL:
+- Data query language (query information from db; _, R, _, _)
+- Data definition language (define db schemas)
+- Data control language (used for controlling access to the data in the db, user and permissions mngmt)
+- Data manipulation language (C, _ , U, D)
+
+
+
+
