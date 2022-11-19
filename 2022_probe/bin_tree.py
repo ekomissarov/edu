@@ -2,6 +2,8 @@ from collections import deque
 
 
 class Node:
+    __slots__ = ["data", "left", "right"]
+    
     def __init__(self, data):
         self.data = data
         self.left = self.right = None

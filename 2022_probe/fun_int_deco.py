@@ -1,6 +1,8 @@
 from random import randrange
+from functools import wraps
 
 def fuck_int(cls):
+    @wraps(cls)
     class remake_some(cls):
         def __add__(self, other):
             if randrange(10) == 0:

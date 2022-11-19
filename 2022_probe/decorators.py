@@ -12,6 +12,9 @@ def fun1(a, b):
     return 2*a+b
     
 print(fun1(2,3))
+print("\n\n\n\n")
+
+
 
 
 def repeat_num(times):
@@ -30,9 +33,10 @@ def fun2(a, b):
     return 2*a+b
     
 print(fun2(2,3))
-
-
 print("\n\n\n\n")
+
+
+
 
 class Timer:
     from time import time
@@ -55,9 +59,10 @@ def payload(delay):
     return sorted(sum(range(i)) for i in range(delay))
 
 print(payload(10000)[-1])
-
-
 print("\n\n\n\n")
+
+
+
 
 def braced(cls):
     cls.___str_old = cls.__str__
@@ -70,9 +75,10 @@ class B(int):
 
 b = B(24)
 print(b) 
-
-
 print("\n\n\n\n")
+
+
+
 
 def braced_inherit(cls):
     class brac(cls):
