@@ -189,5 +189,290 @@ SQL:
 - Data manipulation language (C, _ , U, D)
 
 
+------------------------------------------ practikum:
+SELECT CAST(track_id AS varchar)
+FROM track; 
+
+
+SELECT total,
+       customer_id
+FROM invoice
+WHERE billing_city IN ('Dublin',
+                       'London',
+                       'Paris',
+                       'Boston',
+                       'Berlin',
+                       'Stuttgart'); 
+
+
+SELECT last_name
+FROM staff
+WHERE birth_date BETWEEN '1970-01-01' AND '1970-12-31';
+
+
+SELECT *
+FROM playlist_track
+WHERE CAST(track_id AS VARCHAR) LIKE '%43%'; 
+
+
+SELECT CURRENT_DATE; 
+SELECT CURRENT_TIME; 
+SELECT CURRENT_TIMESTAMP; 
+
+
+SELECT DATE_TRUNC('year', birth_date)
+FROM staff
+LIMIT 5; 
+-- microseconds, milliseconds, second, minute, hour, day, week, month, quarter, year, decade, century
+
+SELECT EXTRACT(YEAR FROM birth_date)
+FROM staff
+LIMIT 5;
+-- CENTURY, DAY, DOY (day of the year), DOW (day of the week), ISODOW, HOUR, MILLISECOND, MINUTE, MONTH, SECOND, QUARTER, WEEK, YEAR
+
+
+SELECT email,
+       fax
+FROM client
+WHERE fax IS NULL
+LIMIT 5; 
+
+
+
+SELECT total,
+       CASE
+           WHEN total < 5 THEN 'маленький'
+           WHEN total >= 5 AND total < 10 THEN 'средний'
+           WHEN total >= 10 THEN 'крупный'
+       END
+FROM invoice
+LIMIT 10; 
+
+SELECT total,
+       CASE
+           WHEN total >= 5 AND total < 10 THEN 'средний'
+           WHEN total >= 10 THEN 'крупный'
+           ELSE 'маленький'
+       END
+FROM invoice
+LIMIT 10; 
+
+
+SELECT invoice_line_id,
+       invoice_id,
+       invoice_line_id + invoice_id
+FROM invoice_line
+LIMIT 5; 
+
+
+SELECT number,
+       ABS(number)
+FROM table_1; 
+
+
+SELECT number,
+       FLOOR(number)
+FROM table_1; 
+
+
+SELECT number,
+       CEILING(number)
+FROM table_1; 
+
+
+SELECT number,
+       ROUND(number)
+FROM table_1; 
+
+SELECT ROUND(21.5595743, 2);
+
+
+SELECT number,
+       POWER(number, 2)
+FROM table_1; 
+
+
+SELECT number,
+       SQRT(ABS(number))
+FROM table_1; 
+
+
+-- TRUNC(42.4382, 2)
+
+SELECT SUM(total),
+       MIN(total),
+       MAX(total),
+       AVG(total),
+       COUNT(total)
+FROM invoice; 
+
+
+SELECT ROUND(AVG(total), 2)
+FROM invoice; 
+
+
+-- так считают записи в таблице
+SELECT COUNT(*)
+FROM invoice; 
+
+
+-- Такой запрос выведет первые пять уникальных значений в поле billing_country.
+SELECT DISTINCT billing_country 
+FROM invoice
+LIMIT 5; 
+
+
+-- нужно указать поля и необходимые вычисления
+SELECT billing_city,
+       ROUND(AVG(total))
+FROM invoice -- не забыть таблицу
+GROUP BY billing_city -- здесь указывают поле, по которому группируют данные
+LIMIT 5; 
+
+
+SELECT billing_city,
+       SUM(total),
+       COUNT(total),
+       AVG(total)
+FROM invoice
+WHERE billing_country = 'USA'
+GROUP BY billing_city
+ORDER BY AVG(total); 
+-- ASC, DESK
+
+
+SELECT CAST(invoice_date AS date),
+       billing_country,
+       COUNT(total)
+FROM invoice
+GROUP BY CAST(invoice_date AS date),
+         billing_country 
+ORDER BY CAST(invoice_date AS date) DESC
+LIMIT 10; 
+
+
+SELECT customer_id,
+       SUM(total)
+FROM invoice
+GROUP BY customer_id
+HAVING SUM(total) > 41 AND AVG(total) > 7
+ORDER BY SUM(total) DESC; 
+
+--к псевдонимам нельзя обратиться в WHERE или HAVING, потому что в SQL операторы выполняются не в том порядке, 
+--в котором их указывают в запросе. Сначала данные отбираются по условию, а только потом полям назначаются псевдонимы.
+--Во многих СУБД нельзя обращаться к псевдонимам и в GROUP BY, но в PostgreSQL можно. 
+
+------------------------------------------ practikum:
+-- как связаны таблицы:
+
+SELECT EXTRACT(YEAR FROM CAST(i.invoice_date AS DATE)) AS year_of_purchase,
+       MIN(i.total) AS min_cost,
+       MAX(i.total) AS max_cost,
+       SUM(i.total) AS total_revenue,
+       COUNT(i.total) AS total_purchases,
+       ROUND(SUM(i.total)/COUNT(DISTINCT(i.customer_id))) AS average_receipt
+FROM invoice AS i
+WHERE billing_country IN ('USA', 'United Kingdom', 'Germany')
+GROUP BY year_of_purchase
+ORDER BY year_of_purchase DESC; 
+
+
+SELECT c.first_name,
+       c.last_name,
+       MIN(i.total) AS min_cost,
+       MAX(i.total) AS max_cost,
+       ROUND(AVG(i.total), 2) AS average_cost,
+       COUNT(i.total) AS total_purchases
+FROM invoice AS i
+INNER JOIN client AS c ON i.customer_id = c.customer_id
+WHERE i.billing_country = 'USA'
+GROUP BY first_name, last_name
+ORDER BY average_cost DESC
+LIMIT 10; 
+
+
+SELECT 
+    p.name as playlist_name,
+    SUM(t.unit_price*i.quantity) AS total_revenue
+FROM track AS t
+INNER JOIN invoice_line AS i ON t.track_id=i.track_id
+INNER JOIN playlist_track AS pl ON t.track_id=pl.track_id
+INNER JOIN playlist AS p ON pl.playlist_id = p.playlist_id
+GROUP BY playlist_name
+ORDER BY total_revenue DESC;
+
+
+SELECT 
+    c.name
+FROM category AS c
+INNER JOIN film_category AS fc ON c.category_id=fc.category_id
+INNER JOIN film_actor AS fa ON fc.film_id=fa.film_id
+INNER JOIN actor AS a ON a.actor_id=fa.actor_id
+WHERE a.first_name='Emily' AND a.last_name='Dee'
+GROUP BY c.name;
+
+
+SELECT 
+    c.name
+FROM (SELECT * FROM actor WHERE first_name='Emily' AND last_name='Dee') AS a
+INNER JOIN film_actor AS fa ON a.actor_id=fa.actor_id
+INNER JOIN film_category AS fc ON fc.film_id=fa.film_id
+INNER JOIN category AS c ON c.category_id=fc.category_id
+GROUP BY c.name;
+
+
+SELECT a.actor_id,
+       a.first_name,
+       a.last_name,
+       c.first_name,
+       c.last_name
+FROM actor AS a
+FULL OUTER JOIN client AS c ON a.last_name = c.last_name
+LIMIT 10; 
+
+
+
+-- конкатенация таблиц с помощью UNION:
+----------------------------------------------------
+SELECT i.billing_country,
+       COUNT(i.total) AS total_purchases
+FROM invoice AS i
+WHERE i.billing_country IN ('USA',
+                            'Germany',
+                            'Brazil')
+  AND EXTRACT(YEAR
+              FROM cast(invoice_date AS date)) = 2009
+GROUP BY i.billing_country
+UNION
+SELECT i.billing_country,
+       COUNT(i.total) AS total_purchases
+FROM invoice AS i
+WHERE i.billing_country IN ('USA',
+                            'Germany',
+                            'Brazil')
+  AND EXTRACT(YEAR
+              FROM cast(invoice_date AS date)) = 2013
+GROUP BY i.billing_country; 
+----------------------------------------------------
+-- абсолютные дубликаты при этом уникализируются, если нам не нужно уникализировать используем UNION ALL
+
+
+
+SELECT
+    billing_country,
+    MIN(total) AS min_total,
+    MAX(total) AS max_total,
+    AVG(total) AS avg_total
+FROM invoice
+WHERE invoice.invoice_id IN (SELECT invoice_id
+                                FROM invoice_line
+                                GROUP BY invoice_id
+                                HAVING SUM(quantity)>5)
+    AND invoice.total>(SELECT AVG(unit_price) FROM invoice_line)
+GROUP BY billing_country
+ORDER BY  avg_total DESC;
+
+
+
 
 
