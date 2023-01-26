@@ -470,9 +470,132 @@ WHERE invoice.invoice_id IN (SELECT invoice_id
                                 HAVING SUM(quantity)>5)
     AND invoice.total>(SELECT AVG(unit_price) FROM invoice_line)
 GROUP BY billing_country
-ORDER BY  avg_total DESC;
+ORDER BY avg_total DESC;
 
 
 
 
+
+
+
+---------------------------- some tasks:
+SELECT DISTINCT film_id
+FROM film_actor
+WHERE actor_id IN (SELECT actor_id
+                   FROM film_actor
+                   WHERE film_id IN (SELECT film_id FROM movie WHERE release_year>2013)
+                   GROUP BY actor_id
+                   HAVING COUNT(*)>7)
+                                    
+                                    
+SELECT c.name as name_category,
+       COUNT(t.film_id) as total_films
+FROM (SELECT category_id, film_id
+      FROM film_category
+      WHERE film_id IN (1,2,3,4)) AS t
+LEFT OUTER JOIN category AS c ON t.category_id = c.category_id
+GROUP BY name_category
+ORDER BY total_films DESC;
+
+
+
+SELECT c.name as name_category,
+       COUNT(t.film_id) as total_films
+FROM 
+    (SELECT category_id, film_id
+      FROM film_category
+      WHERE film_id IN (SELECT DISTINCT film_id
+                        FROM film_actor
+                        WHERE actor_id IN (SELECT actor_id
+                                           FROM film_actor
+                                           WHERE film_id IN (SELECT film_id FROM movie WHERE release_year>2013)
+                                           GROUP BY actor_id
+                                           HAVING COUNT(*)>7))
+     ) AS t
+
+LEFT OUTER JOIN category AS c ON t.category_id = c.category_id
+GROUP BY name_category
+ORDER BY total_films DESC, name_category ASC; 
+
+
+
+
+SELECT ni.country, ni.total_invoice, nc.total_customers
+FROM (
+        SELECT billing_country AS country,
+               COUNT(invoice_id) AS total_invoice
+        FROM invoice
+        WHERE EXTRACT(YEAR FROM CAST(invoice_date AS timestamp)) = (
+                            SELECT y.year
+                            FROM (SELECT 
+                                        EXTRACT(YEAR FROM CAST(invoice_date AS timestamp)) AS year,
+                                        SUM (total) as total_sum
+                                    FROM invoice
+                                    WHERE EXTRACT(MONTH FROM CAST(invoice_date AS timestamp)) IN (6,7,8)
+                                    GROUP BY year
+                                    ORDER BY total_sum DESC
+                                    LIMIT 1) AS y
+        )
+        GROUP BY country
+) AS ni
+LEFT JOIN (
+        SELECT country, 
+               COUNT(customer_id) as total_customers 
+        FROM client 
+        GROUP BY country
+) AS nc 
+ON nc.country=ni.country
+ORDER BY total_invoice DESC, country;
+
+
+WITH
+-- назначение псевдонимов и формирование подзапросов
+псевдоним_1 AS (подзапрос_1),
+псевдоним_2 AS (подзапрос_2),
+псевдоним_3 AS (подзапрос_3),
+....
+псевдоним_n AS (подзапрос_n)
+
+SELECT -- основной запрос
+-- внутри основного запроса работают с псевдонимами, которые назначили в WITH
+FROM псевдоним_1 INNER JOIN псевдоним_2 ... 
+...
+... 
+
+
+WITH
+t AS (SELECT 
+            EXTRACT(YEAR FROM CAST(invoice_date AS timestamp)) AS year,
+            EXTRACT(MONTH FROM CAST(invoice_date AS timestamp)) AS month,
+            COUNT(*)
+        FROM invoice
+        GROUP BY year, month),
+t11 AS (SELECT month, count as year_2011 FROM t WHERE year=2011),
+t12 AS (SELECT month, count as year_2012 FROM t WHERE year=2012),
+t13 AS (SELECT month, count as year_2013 FROM t WHERE year=2013)
+
+SELECT DISTINCT t.month as invoice_month, 
+                t11.year_2011, t12.year_2012, t13.year_2013
+FROM t
+LEFT JOIN t11 ON t11.month=t.month
+LEFT JOIN t12 ON t12.month=t.month
+LEFT JOIN t13 ON t13.month=t.month
+ORDER BY invoice_month;
+
+-------------------------------------------------------------------
+Запросы выполняются в таком порядке:
+1. Сначала нужно определить, откуда брать данные, поэтому первым идёт оператор FROM. На этом же этапе объединяются таблицы операторами JOIN и назначаются для них псевдонимы. Важно учесть, что присоединение предшествует фильтрации и группировке. Это означает, что большие таблицы будут объединяться очень долго. В этом случае выручат временные таблицы.
+
+2. Данные выбраны, и наступает очередь оператора WHERE. Остаются только те данные, которые соответствуют условиям.
+
+3. После срезов выполняется группировка оператором GROUP BY и подсчёт данных агрегирующими функциями. Обратите внимание, что WHERE предшествует GROUP BY, и это не позволяет сделать срез по группам. В момент получения среза группировка ещё не произошла.
+
+4. Теперь наступает очередь HAVING — отбираются уже сгруппированные данные.
+
+5. Только на этом этапе происходит выбор данных с помощью оператора SELECT, а полям в итоговой таблице присваиваются псевдонимы. По этой причине псевдонимы нельзя использовать после WHERE и HAVING — они ещё не назначены. В некоторых СУБД псевдонимы нельзя использовать и после GROUP BY. В PostgreSQL есть расширение, которое устраняет эту проблему.
+
+6. После SELECT срабатывает ключевое слово DISTINCT, которое отбирает уникальные значения.
+
+7. Нужные данные отобраны, и происходит сортировка. Оператор ORDER BY действует предпоследним.
+8. Замыкающим будет оператор LIMIT.
 
