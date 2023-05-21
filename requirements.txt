@@ -15,6 +15,6 @@ multidict==4.7.5
 python-daemon==2.2.4
 PyYAML==5.4
 requests==2.23.0
-urllib3==1.25.8
+urllib3==1.26.5
 Werkzeug==0.16.0
 yarl==1.4.2
